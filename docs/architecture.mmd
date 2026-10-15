@@ -1,0 +1,36 @@
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Helvetica, Arial, sans-serif","fontSize":"15px","primaryColor":"#E8EEFC","primaryBorderColor":"#1F4FD8","primaryTextColor":"#1C1C1C","lineColor":"#2B2F33","clusterBkg":"#F4F6FA","clusterBorder":"#5B6470","edgeLabelBackground":"#FFFFFF"}}}%%
+flowchart LR
+  subgraph Phone["📱 Broker's phone — Mortgage Options app"]
+    direction TB
+    UI["Screens<br/>clients · cases · fact-find<br/>record · AI review · consent<br/>documents · notes · export"]
+    REPO["Repository<br/>validation · provenance<br/>hash-chained audit log"]
+    DB[("Encrypted SQLite<br/>SQLCipher AES-256<br/>key in Keystore / Keychain")]
+    OUT["Branded PDFs (expo-print)<br/>Encrypted export (.moexport)"]
+    UI --> REPO --> DB
+    UI --> OUT
+  end
+
+  subgraph Server["🖥 Mortgage Options server — Node 24"]
+    direction TB
+    AUTH["Broker sign-in<br/>scrypt · tokens · lockout"]
+    JOBS["Transcription jobs<br/>audio deleted after upload<br/>transcript encrypted, purged"]
+    EXTR["Extraction<br/>schema-validated proposals"]
+    AUTH --> JOBS
+    AUTH --> EXTR
+  end
+
+  subgraph Vendors["☁ AI services (keys only on server)"]
+    direction TB
+    AAI["AssemblyAI · EU region<br/>speech-to-text + speakers"]
+    CL["Anthropic Claude<br/>claude-sonnet-5-5 · text only"]
+  end
+
+  UI ==>|"① HTTPS: meeting audio"| AUTH
+  JOBS <-->|"② audio → transcript<br/>then deleted"| AAI
+  EXTR <-->|"③ transcript → JSON proposals"| CL
+  EXTR ==>|"④ proposals for broker review<br/>nothing saved until accepted"| UI
+
+  classDef store fill:#FFFFFF,stroke:#1F4FD8,stroke-width:2px
+  classDef vendor fill:#2B2F33,stroke:#1C1C1C,color:#FFFFFF
+  class DB store
+  class AAI,CL vendor

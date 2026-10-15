@@ -52,7 +52,8 @@ const config: ExpoConfig = {
   ],
   extra: {
     variant,
-    eas: { projectId: process.env.EAS_PROJECT_ID },
+    // After running `npx eas-cli init`, paste your project ID between the quotes (or set EAS_PROJECT_ID).
+    eas: { projectId: process.env.EAS_PROJECT_ID || '' || undefined },
   },
 };
 

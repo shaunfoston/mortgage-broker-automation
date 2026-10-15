@@ -83,7 +83,7 @@ function shell(meta: DocMeta, body: string): string {
   const clientName = meta.client ? `${meta.client.firstName} ${meta.client.lastName}` : '';
   return `<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"><title>${e(meta.title)} — ${e(meta.caseRec.reference)}</title><style>${CSS}</style></head><body>
 <div class="header">${logoSvg(42)}<div class="brand">Mortgage <span>Options</span></div>
-<div class="doc"><b>${e(meta.title)}</b>${e(meta.caseRec.reference)} · ${e(clientName)}</div></div>
+<div class="doc"><b>${e(meta.title)}</b>${e(meta.caseRec.reference)}${clientName ? ` · ${e(clientName)}` : ''}</div></div>
 ${body}
 <div class="footer"><span>${e(BRAND.footer)} · ${e(meta.confidentiality ?? 'Confidential — contains personal data')}</span><span>Generated ${e(fmtDateTime(meta.generatedAt))} by ${e(meta.generatedBy)}</span></div>
 </body></html>`;

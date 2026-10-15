@@ -131,9 +131,9 @@ test('definition-of-success workflow (server mode)', async () => {
     const exs = await repo.listExtractions(kase.id);
     const htmls = {
       factfind: factFindHtml({ client: await repo.getClient(client.id), caseRec: c, generatedAt: now, generatedBy: 'Alan Broker' }),
-      summary: meetingSummaryHtml({ client: null, caseRec: c, recording: recs[0], extraction: exs[0], generatedAt: now, generatedBy: 'Alan Broker' }),
-      consent: consentHtml({ client: null, caseRec: c, consent: consents[0], verified: true, generatedAt: now, generatedBy: 'Alan Broker' }),
-      audit: auditHtml({ client: null, caseRec: c, entries: (await repo.listAudit(kase.id)).reverse(), chainOk: true, generatedAt: now, generatedBy: 'Alan Broker' }),
+      summary: meetingSummaryHtml({ client: await repo.getClient(client.id), caseRec: c, recording: recs[0], extraction: exs[0], generatedAt: now, generatedBy: 'Alan Broker' }),
+      consent: consentHtml({ client: await repo.getClient(client.id), caseRec: c, consent: consents[0], verified: true, generatedAt: now, generatedBy: 'Alan Broker' }),
+      audit: auditHtml({ client: await repo.getClient(client.id), caseRec: c, entries: (await repo.listAudit(kase.id)).reverse(), chainOk: true, generatedAt: now, generatedBy: 'Alan Broker' }),
     };
     assert.match(htmls.factfind, /£42,500<span class="ai">AI<\/span>/);
     assert.match(htmls.summary, /Recent bereavement/);

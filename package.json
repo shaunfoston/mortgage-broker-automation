@@ -2,7 +2,7 @@
   "name": "mortgage-options",
   "version": "0.4.0",
   "private": true,
-  "description": "Mortgage Options — UK mortgage broker client-intake platform (Expo app + Node backend)",
+  "description": "Mortgage Options \u2014 UK mortgage broker client-intake platform (Expo app + Node backend)",
   "workspaces": [
     "shared",
     "server",
@@ -13,9 +13,9 @@
   },
   "scripts": {
     "test": "npm run test:shared && npm run test:server && npm run test:app",
-    "test:shared": "node --test \"shared/test/*.test.ts\"",
-    "test:server": "node --test \"server/test/*.test.ts\"",
-    "test:app": "npm --workspace app test",
+    "test:shared": "node --disable-warning=ExperimentalWarning --test \"shared/test/*.test.ts\"",
+    "test:server": "node --disable-warning=ExperimentalWarning --test \"server/test/*.test.ts\"",
+    "test:app": "node --disable-warning=ExperimentalWarning --test \"app/__tests__/*.test.ts\"",
     "typecheck": "tsc -p shared && tsc -p server && npm --workspace app run typecheck",
     "server": "npm --workspace server start",
     "server:demo": "npm --workspace server run demo",
