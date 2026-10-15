@@ -25,10 +25,48 @@ export function randomBytes(n: number): Uint8Array {
   return randomSource(n);
 }
 
-const enc = new TextEncoder();
-const dec = new TextDecoder();
-export const utf8 = (s: string): Uint8Array => enc.encode(s);
-export const fromUtf8 = (b: Uint8Array): string => dec.decode(b);
+// Hermes (React Native) may lack TextDecoder; fall back to a small UTF-8 codec.
+const enc = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
+const dec = typeof TextDecoder !== 'undefined' ? new TextDecoder() : null;
+
+export function utf8Fallback(s: string): Uint8Array {
+  const out: number[] = [];
+  for (let i = 0; i < s.length; i++) {
+    let c = s.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) {
+      const d = s.charCodeAt(i + 1);
+      if (d >= 0xdc00 && d <= 0xdfff) {
+        c = 0x10000 + ((c - 0xd800) << 10) + (d - 0xdc00);
+        i++;
+      }
+    }
+    if (c < 0x80) out.push(c);
+    else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+    else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    else out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+  }
+  return new Uint8Array(out);
+}
+
+export function fromUtf8Fallback(b: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < b.length; ) {
+    const x = b[i++];
+    let c: number;
+    if (x < 0x80) c = x;
+    else if (x < 0xe0) c = ((x & 31) << 6) | (b[i++] & 63);
+    else if (x < 0xf0) c = ((x & 15) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63);
+    else c = ((x & 7) << 18) | ((b[i++] & 63) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63);
+    if (c > 0xffff) {
+      c -= 0x10000;
+      s += String.fromCharCode(0xd800 + (c >> 10), 0xdc00 + (c & 1023));
+    } else s += String.fromCharCode(c);
+  }
+  return s;
+}
+
+export const utf8 = (s: string): Uint8Array => (enc ? enc.encode(s) : utf8Fallback(s));
+export const fromUtf8 = (b: Uint8Array): string => (dec ? dec.decode(b) : fromUtf8Fallback(b));
 
 export function toHex(b: Uint8Array): string {
   let s = '';

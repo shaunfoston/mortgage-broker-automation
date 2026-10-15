@@ -37,23 +37,23 @@ export interface Backend {
   extract(transcript: string, numApplicants: 1 | 2): Promise<{ model: string; proposal: ExtractionProposal }>;
 }
 
+/** Parse with a regex rather than URL — React Native's URL support varies. */
 export function normaliseBaseUrl(raw: string): string {
-  let s = raw.trim().replace(/\/+$/, '');
-  if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
-  const u = new URL(s);
-  return `${u.protocol}//${u.host}`;
+  const s = raw.trim().replace(/\/+$/, '');
+  const m = s.match(/^(?:(https?):\/\/)?([A-Za-z0-9.-]+|\[[0-9a-fA-F:]+\])(?::(\d{1,5}))?(?:\/.*)?$/i);
+  if (!m) throw new Error('Enter a server address like https://example.trycloudflare.com or http://192.168.1.20:3005');
+  const scheme = (m[1] ?? 'https').toLowerCase();
+  return `${scheme}://${m[2].toLowerCase()}${m[3] ? `:${m[3]}` : ''}`;
 }
 
-/** Plain HTTP is only acceptable on a private network during testing. */
 export function isInsecureUrl(base: string): boolean {
-  const u = new URL(base);
-  if (u.protocol === 'https:') return false;
-  return true;
+  return !/^https:\/\//i.test(base);
 }
 
+/** Plain HTTP is only acceptable to a private network address during testing. */
 export function isPrivateHost(base: string): boolean {
-  const h = new URL(base).hostname;
-  return /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h);
+  const host = base.replace(/^https?:\/\//i, '').replace(/:\d+$/, '');
+  return /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
 }
 
 export class ServerBackend implements Backend {

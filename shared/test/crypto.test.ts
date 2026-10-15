@@ -89,3 +89,25 @@ test('audit chain detects edits, deletions and reordering', () => {
   const removed = entries.filter((_, i) => i !== 1);
   assert.equal(verifyAuditChain(removed).ok, false);
 });
+
+test('UTF-8 fallback codec matches TextEncoder/TextDecoder', async () => {
+  const { utf8Fallback, fromUtf8Fallback } = await import('../src/crypto.ts');
+  for (const s of ['', 'abc', '£285,000', 'Ünïcødé ✓', '😀 emoji 𝄞', 'x'.repeat(1000)]) {
+    assert.deepEqual(utf8Fallback(s), new TextEncoder().encode(s));
+    assert.equal(fromUtf8Fallback(new TextEncoder().encode(s)), s);
+  }
+});
+
+test('base URL normalisation and private-host detection', async () => {
+  const { normaliseBaseUrl, isInsecureUrl, isPrivateHost } = await import('../src/apiClient.ts');
+  assert.equal(normaliseBaseUrl('192.168.1.20:3005/'), 'https://192.168.1.20:3005');
+  assert.equal(normaliseBaseUrl('http://192.168.1.20:3005/health'), 'http://192.168.1.20:3005');
+  assert.equal(normaliseBaseUrl(' HTTPS://Quick-Fox.trycloudflare.com '), 'https://quick-fox.trycloudflare.com');
+  assert.throws(() => normaliseBaseUrl('not a url!'));
+  assert.ok(isInsecureUrl('http://10.0.0.2:3005'));
+  assert.ok(!isInsecureUrl('https://x.example'));
+  assert.ok(isPrivateHost('http://192.168.1.20:3005'));
+  assert.ok(isPrivateHost('http://172.20.0.1'));
+  assert.ok(!isPrivateHost('http://8.8.8.8:3005'));
+  assert.ok(!isPrivateHost('http://172.32.0.1'));
+});
