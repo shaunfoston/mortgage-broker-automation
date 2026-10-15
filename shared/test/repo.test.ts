@@ -179,3 +179,24 @@ test('concurrent transactions are serialised and audit seq stays gapless', async
   assert.equal((await repo.verifyAudit()).ok, true);
   db.close();
 });
+
+test('bulk accept never overwrites a different existing value', async () => {
+  const { db, repo } = await setup();
+  const client = await repo.createClient({ firstName: 'Jordan', lastName: 'Testwell' });
+  const kase = await repo.createCase(client.id);
+  await repo.saveSection(kase.id, 'a1', 'employment', { basicSalary: '40000' });
+  const ex = await repo.createExtraction(kase.id, null, normaliseExtraction(DEMO_EXTRACTION_RAW, 1), 'demo');
+  const r = await repo.acceptAllAbove(ex.id);
+  assert.ok(r.skippedConflicts >= 1);
+  let c = (await repo.getCase(kase.id))!;
+  assert.equal(getValue(c.factFind, 'a1.employment.basicSalary'), 40000, 'manual value preserved');
+  assert.equal(getValue(c.factFind, 'a1.personal.firstName'), 'Jordan');
+  assert.equal(c.provenance['a1.personal.firstName'].source, 'manual', 'same value keeps manual provenance');
+  const item = (await repo.getExtraction(ex.id))!.items.find((i) => i.path === 'a1.employment.basicSalary')!;
+  assert.equal(item.decision, 'pending');
+  await repo.decideItem(item.id, 'accepted');
+  c = (await repo.getCase(kase.id))!;
+  assert.equal(getValue(c.factFind, 'a1.employment.basicSalary'), 42500, 'explicit accept overwrites');
+  assert.equal(c.provenance['a1.employment.basicSalary'].source, 'ai');
+  db.close();
+});

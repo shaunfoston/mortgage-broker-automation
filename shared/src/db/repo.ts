@@ -18,6 +18,7 @@ import {
   coerceRow,
   emptyFactFind,
   getList,
+  getValue,
   parseFactFind,
   setList,
   setListNone,
@@ -684,8 +685,12 @@ export class Repo {
           if (!r.ok) throw new ValidationError(r.error, { value: r.error });
           if (r.value === null) throw new ValidationError('Value is empty', { value: 'Required' });
           finalValue = r.value;
-          ff = setValue(ff, item.path, r.value);
-          prov[item.path] = { source: 'ai', at: now, by: this.ctx.actor(), extractionId: item.extractionId, confidence: item.confidence };
+          const current = getValue(ff, item.path);
+          if (current !== r.value) {
+            ff = setValue(ff, item.path, r.value);
+            prov[item.path] = { source: 'ai', at: now, by: this.ctx.actor(), extractionId: item.extractionId, confidence: item.confidence };
+          }
+          // Same value already recorded: keep the existing provenance (e.g. manual entry).
         } else {
           const src = (decision === 'edited' ? editedValue : item.proposed) as Record<string, unknown>;
           const { row, errors } = coerceRow(p.section, src ?? {});
@@ -712,14 +717,27 @@ export class Repo {
     });
   }
 
-  /** Accept every pending item at or above the threshold (default: high band). */
-  async acceptAllAbove(extractionId: string, threshold = 0.85): Promise<{ accepted: number; failed: number }> {
+  /**
+   * Accept every pending item at or above the threshold (default: high band).
+   * Items that would overwrite a different existing value are skipped so the
+   * broker decides those individually.
+   */
+  async acceptAllAbove(extractionId: string, threshold = 0.85): Promise<{ accepted: number; failed: number; skippedConflicts: number }> {
     const ex = await this.getExtraction(extractionId);
     if (!ex) throw new ValidationError('Extraction not found');
+    const c = await this.getCase(ex.caseId);
     let accepted = 0;
     let failed = 0;
+    let skippedConflicts = 0;
     for (const it of ex.items) {
       if (it.decision !== 'pending' || it.confidence < threshold) continue;
+      if (c && it.kind === 'field') {
+        const current = getValue(c.factFind, it.path);
+        if (current !== null && current !== it.proposed) {
+          skippedConflicts++;
+          continue;
+        }
+      }
       try {
         await this.decideItem(it.id, 'accepted');
         accepted++;
@@ -727,7 +745,7 @@ export class Repo {
         failed++;
       }
     }
-    return { accepted, failed };
+    return { accepted, failed, skippedConflicts };
   }
 
   // ─────────────────────────────── consents ───────────────────────────────
