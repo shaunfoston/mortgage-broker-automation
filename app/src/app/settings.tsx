@@ -12,7 +12,7 @@ import { biometricsAvailable, biometricsEnabled, clearLockData, getLockTimeout, 
 import { S, T } from '../lib/theme.ts';
 import { Badge, Banner, Button, Card, Choice, Field, Screen, SectionTitle, Toggle } from '../components/ui.tsx';
 
-const TIMEOUTS: Record<string, number> = { Immediately: 0, '1 minute': 60, '5 minutes': 300, '15 minutes': 900 };
+const TIMEOUTS: Record<string, number> = { '30 seconds': 30, '1 minute': 60, '5 minutes': 300, '15 minutes': 900 };
 
 export default function Settings() {
   const { repo, brokerName, setBrokerName, backendSettings, updateBackend, dbInfo, bump } = useApp();

@@ -77,7 +77,8 @@ export function AppProvider({ children, fallback }: { children: React.ReactNode;
   // Auto-lock after the configured time in the background.
   useEffect(() => {
     const sub = AppState.addEventListener('change', async (s: AppStateStatus) => {
-      if (s === 'background' || s === 'inactive') {
+      // Only 'background' counts: iOS reports 'inactive' for system sheets, permission and Face ID prompts.
+      if (s === 'background') {
         if (backgroundAt.current === null) backgroundAt.current = Date.now();
       } else if (s === 'active' && backgroundAt.current !== null) {
         const away = (Date.now() - backgroundAt.current) / 1000;
