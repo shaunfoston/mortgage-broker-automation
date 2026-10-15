@@ -4,7 +4,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { getSection, ownerLabel, SECTIONS, type Owner } from '@mortgage-options/shared/factfind/schema.ts';
 import { getList, isListNone, type Row } from '@mortgage-options/shared/factfind/model.ts';
 import { toInputString } from '@mortgage-options/shared/factfind/values.ts';
-import { ValidationError } from '@mortgage-options/shared/db/repo.ts';
+import { isValidationError } from '@mortgage-options/shared/db/repo.ts';
 import { useApp, useData } from '../../../lib/app.tsx';
 import { errMsg } from '../../../lib/format.ts';
 import { S, T } from '../../../lib/theme.ts';
@@ -70,8 +70,8 @@ export default function SectionEditor() {
       if (thenNext && next) router.replace({ pathname: '/cases/[id]/section', params: { id, owner: next.owner, section: next.section.id } });
       else setMsg({ tone: 'success', text: 'Saved.' });
     } catch (e) {
-      if (e instanceof ValidationError) setErrors(e.fields);
-      setMsg({ tone: 'danger', text: e instanceof ValidationError ? 'Please correct the highlighted fields — nothing was saved.' : errMsg(e) });
+      if (isValidationError(e)) setErrors(e.fields);
+      setMsg({ tone: 'danger', text: isValidationError(e) ? 'Please correct the highlighted fields — nothing was saved.' : errMsg(e) });
     } finally {
       setBusy(false);
     }

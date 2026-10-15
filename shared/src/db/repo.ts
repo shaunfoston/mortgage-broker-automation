@@ -188,6 +188,11 @@ export class ValidationError extends Error {
   }
 }
 
+/** Works even where subclassed Error loses its prototype (some JS engines / transpilers). */
+export function isValidationError(e: unknown): e is ValidationError {
+  return !!e && typeof e === 'object' && (e as { name?: unknown }).name === 'ValidationError';
+}
+
 export interface RepoContext {
   actor: () => string;
   now?: () => Date;

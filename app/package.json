@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
-    "test": "node --disable-warning=ExperimentalWarning --test \"__tests__/*.test.ts\"",
+    "test": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"__tests__/*.test.mts\"",
     "doctor": "npx expo-doctor",
     "build:android:preview": "eas build --platform android --profile preview",
     "build:ios:preview": "eas build --platform ios --profile preview"

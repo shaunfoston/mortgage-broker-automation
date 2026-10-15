@@ -4,7 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import * as Device from 'expo-device';
 import { CONSENT_INTRO, CONSENT_ITEMS, FIRM_PLACEHOLDER } from '@mortgage-options/shared/consent.ts';
 import { applicantName } from '@mortgage-options/shared/factfind/model.ts';
-import { ValidationError } from '@mortgage-options/shared/db/repo.ts';
+import { isValidationError } from '@mortgage-options/shared/db/repo.ts';
 import { useApp, useData } from '../../../lib/app.tsx';
 import { errMsg, fmtDateTime, timeZone } from '../../../lib/format.ts';
 import { makePdf, shareFile } from '../../../lib/pdf.ts';
@@ -60,7 +60,7 @@ export default function ConsentScreen() {
       setMsg('Consent saved.');
       bump();
     } catch (e) {
-      if (e instanceof ValidationError) setErrors(e.fields);
+      if (isValidationError(e)) setErrors(e.fields);
       setMsg(errMsg(e));
     } finally {
       setBusy(false);

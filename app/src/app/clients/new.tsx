@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { getSection } from '@mortgage-options/shared/factfind/schema.ts';
-import { ValidationError } from '@mortgage-options/shared/db/repo.ts';
+import { isValidationError } from '@mortgage-options/shared/db/repo.ts';
 import { useApp } from '../../lib/app.tsx';
 import { errMsg } from '../../lib/format.ts';
 import { Banner, Button, Choice, Field, Screen } from '../../components/ui.tsx';
@@ -30,7 +30,7 @@ export default function NewClient() {
       bump();
       router.replace({ pathname: '/cases/[id]', params: { id: k.id } });
     } catch (e) {
-      if (e instanceof ValidationError) setErrors(e.fields);
+      if (isValidationError(e)) setErrors(e.fields);
       setMsg(errMsg(e));
     } finally {
       setBusy(false);

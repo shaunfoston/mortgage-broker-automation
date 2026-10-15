@@ -142,7 +142,7 @@ export class ServerBackend implements Backend {
       if (r.status === 'error') return { status: 'error', provider: r.provider, error: r.error ?? 'Transcription failed' };
       return { status: r.status, provider: r.provider };
     } catch (e) {
-      if (e instanceof ApiError && e.status === 410) return { status: 'expired', provider: '' };
+      if ((e as { status?: number })?.status === 410) return { status: 'expired', provider: '' };
       throw e;
     }
   }
