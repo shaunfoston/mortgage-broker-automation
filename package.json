@@ -1,0 +1,24 @@
+{
+  "name": "mortgage-options",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Mortgage Options — UK mortgage broker client-intake platform (Expo app + Node backend)",
+  "workspaces": [
+    "shared",
+    "server",
+    "app"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "npm run test:shared && npm run test:server && npm run test:app",
+    "test:shared": "node --test \"shared/test/*.test.ts\"",
+    "test:server": "node --test \"server/test/*.test.ts\"",
+    "test:app": "npm --workspace app test",
+    "typecheck": "tsc -p shared && tsc -p server && npm --workspace app run typecheck",
+    "server": "npm --workspace server start",
+    "server:demo": "npm --workspace server run demo",
+    "app": "npm --workspace app start"
+  }
+}
