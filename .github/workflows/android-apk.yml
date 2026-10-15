@@ -1,0 +1,68 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run automated tests
+        run: npm test
+
+      - name: Generate Android project
+        working-directory: app
+        env:
+          APP_VARIANT: preview
+        run: npx expo prebuild --platform android --no-install --clean
+
+      - name: Build release APK (arm64)
+        working-directory: app/android
+        env:
+          APP_VARIANT: preview
+          NODE_ENV: production
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+
+      - name: Collect APK
+        run: |
+          mkdir -p out
+          cp app/android/app/build/outputs/apk/release/app-release.apk "out/MortgageOptions-test-${{ github.run_number }}.apk"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MortgageOptions-apk
+          path: out/*.apk
+
+      - name: Publish as GitHub release (phone-friendly download)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "apk-${{ github.run_number }}" out/*.apk \
+            --title "Mortgage Options test APK #${{ github.run_number }}" \
+            --notes "Test build from commit ${{ github.sha }}. Fictional data only. Install on Android: tap the .apk below, then allow 'install unknown apps' if asked." \
+            --prerelease
