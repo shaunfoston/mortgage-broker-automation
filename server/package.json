@@ -1,0 +1,21 @@
+{
+  "name": "@mortgage-options/server",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Mortgage Options backend: broker auth, transcription jobs (AssemblyAI EU), Claude extraction. Zero runtime dependencies (Node >= 22.18 built-ins only).",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/index.ts",
+    "demo": "node --disable-warning=ExperimentalWarning src/index.ts --demo",
+    "test": "node --test \"test/*.test.ts\"",
+    "user:create": "node --disable-warning=ExperimentalWarning scripts/create-user.ts",
+    "decrypt-export": "node scripts/decrypt-export.ts",
+    "check-config": "node --disable-warning=ExperimentalWarning scripts/check-config.ts"
+  },
+  "dependencies": {
+    "@mortgage-options/shared": "*"
+  }
+}
